@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import com.iflytek.cloud.ErrorCode;
 import com.iflytek.cloud.InitListener;
+import com.iflytek.cloud.Setting;
 import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechEvent;
@@ -17,17 +18,18 @@ import com.iflytek.cloud.SpeechSynthesizer;
 import com.iflytek.cloud.SpeechUtility;
 import com.iflytek.cloud.SynthesizerListener;
 import com.iflytek.cloud.util.ResourceUtil;
+import com.yihuitek.mytts.readtxt.ReadTxt;
 
 public class TTS {
     // 语音合成对象
     private SpeechSynthesizer mTts;
     private SharedPreferences mSharedPreferences;
     // 默认云端发音人
-    public static String voicerCloud="xiaoyan";
+    public static String voicerCloud = "xiaoyan";
     // 默认本地发音人
-    public static String voicerLocal="xiaoyan";
+    public static String voicerLocal = "xiaoyan";
 
-    public static String voicerXtts="xiaoyan";
+    public static String voicerXtts = "xiaoyan";
 
     // 引擎类型
     private String mEngineType = SpeechConstant.TYPE_LOCAL;
@@ -36,21 +38,23 @@ public class TTS {
     //播放进度
     private int mPercentForPlaying = 0;
     public Toast mToast;
-    String text="移汇科技，智慧生活";
-   private Context context;
+    String text = "移汇科技，智慧生活";
+    private Context context;
 
-     private  static TTS tts;
-     private TTS(){
-         Log.e("calm","init tts");
-         this.context=MyApplication.context;
-         SpeechUtility.createUtility(context, SpeechConstant.APPID +"=576fe70f");
-         // 初始化合成对象
-         mTts = SpeechSynthesizer.createSynthesizer(context, mTtsInitListener);
-         mSharedPreferences = context.getSharedPreferences(TtsSettings.PREFER_NAME, Activity.MODE_PRIVATE);
-         setParam();
-     }
-    public static TTS getInstanceTTS(Context context){
-        if(tts==null) {
+    private static TTS tts;
+
+    private TTS() {
+        Log.e("calm", "init tts");
+        this.context = MyApplication.context;
+        SpeechUtility.createUtility(context, SpeechConstant.APPID + "=576fe70f");
+        // 初始化合成对象
+        mTts = SpeechSynthesizer.createSynthesizer(context, mTtsInitListener);
+        mSharedPreferences = context.getSharedPreferences(TtsSettings.PREFER_NAME, Activity.MODE_PRIVATE);
+        setParam();
+    }
+
+    public static TTS getInstanceTTS(Context context) {
+        if (tts == null) {
             synchronized (TTS.class) {
                 if (tts == null) {
 
@@ -58,18 +62,50 @@ public class TTS {
                 }
             }
         }
-      return tts;
+        return tts;
 
     }
 
-public boolean speak(String text){
-    int code = mTts.startSpeaking(text, mTtsListener);
-    if (code != ErrorCode.SUCCESS) {
-        return false;
-    }else{
+    public boolean speak(final String text) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.e("calm", "播放：" + Config.offess + "   " + Config.len);
+                String str = ReadTxt.read(Config.offess, Config.offess + Config.len);
+
+                Log.e("calm", "播放：" + str);
+                int code = mTts.startSpeaking(str, mTtsListener);
+                if (code != ErrorCode.SUCCESS) {
+
+                } else {
+
+                }
+            }
+        }).start();
         return true;
     }
-}
+
+    public void stop() {
+        try {
+            if (mTts != null) {
+                mTts.stopSpeaking();
+            }
+        } catch (Exception e) {
+            Log.e("calm", "" + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+        public void pause(){
+            try {
+                if (mTts != null) {
+                    mTts.pauseSpeaking();
+                }
+            } catch (Exception e) {
+                Log.e("calm", "" + e.getMessage());
+                e.printStackTrace();
+            }
+    }
+
 
     /**
      * 初始化监听。
@@ -79,7 +115,7 @@ public boolean speak(String text){
         public void onInit(int code) {
 
             if (code != ErrorCode.SUCCESS) {
-                Log.e("calm","初始化失败,错误码："+code+",请点击网址https://www.xfyun.cn/document/error-code查询解决方案");
+                Log.e("calm", "初始化失败,错误码：" + code + ",请点击网址https://www.xfyun.cn/document/error-code查询解决方案");
 
             } else {
                 Log.e("calm", "初始化成功");
@@ -91,10 +127,6 @@ public boolean speak(String text){
     };
 
 
-
-
-
-
     /**
      * 合成回调监听。
      */
@@ -103,17 +135,17 @@ public boolean speak(String text){
         @Override
         public void onSpeakBegin() {
             //showTip("开始播放");
-            Log.d("calm","开始播放："+ System.currentTimeMillis());
+            Log.d("calm", "开始播放：" + System.currentTimeMillis());
         }
 
         @Override
         public void onSpeakPaused() {
-            Log.d("calm","暂停播放");
+            Log.d("calm", "暂停播放");
         }
 
         @Override
         public void onSpeakResumed() {
-            Log.d("calm","继续播放");
+            Log.d("calm", "继续播放");
         }
 
         @Override
@@ -121,7 +153,7 @@ public boolean speak(String text){
                                      String info) {
             // 合成进度
             mPercentForBuffering = percent;
-            Log.d("calm",String.format(context.getString(R.string.tts_toast_format),
+            Log.d("calm", String.format(context.getString(R.string.tts_toast_format),
                     mPercentForBuffering, mPercentForPlaying));
         }
 
@@ -129,17 +161,19 @@ public boolean speak(String text){
         public void onSpeakProgress(int percent, int beginPos, int endPos) {
             // 播放进度
             mPercentForPlaying = percent;
-            Log.d("calm",String.format(context.getString(R.string.tts_toast_format),
+            Log.d("calm", String.format(context.getString(R.string.tts_toast_format),
                     mPercentForBuffering, mPercentForPlaying));
         }
 
         @Override
         public void onCompleted(SpeechError error) {
             if (error == null) {
-                Log.d("calm","播放完成");
+                Log.d("calm", "播放完成");
             } else if (error != null) {
-                Log.d("calm",error.getPlainDescription(true));
+                Log.d("calm", error.getPlainDescription(true));
             }
+
+            speak("");
         }
 
         @Override
@@ -162,30 +196,29 @@ public boolean speak(String text){
     /**
      * 参数设置
      */
-    private void setParam(){
+    private void setParam() {
         // 清空参数
         mTts.setParameter(SpeechConstant.PARAMS, null);
         //设置合成
-        if(mEngineType.equals(SpeechConstant.TYPE_CLOUD))
-        {
+        if (mEngineType.equals(SpeechConstant.TYPE_CLOUD)) {
             //设置使用云端引擎
             mTts.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
             //设置发音人
-            mTts.setParameter(SpeechConstant.VOICE_NAME,voicerCloud);
+            mTts.setParameter(SpeechConstant.VOICE_NAME, voicerCloud);
 
-        }else if(mEngineType.equals(SpeechConstant.TYPE_LOCAL)){
+        } else if (mEngineType.equals(SpeechConstant.TYPE_LOCAL)) {
             //设置使用本地引擎
             mTts.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_LOCAL);
             //设置发音人资源路径
-            mTts.setParameter(ResourceUtil.TTS_RES_PATH,getResourcePath());
+            mTts.setParameter(ResourceUtil.TTS_RES_PATH, getResourcePath());
             //设置发音人
-            mTts.setParameter(SpeechConstant.VOICE_NAME,voicerLocal);
-        }else{
+            mTts.setParameter(SpeechConstant.VOICE_NAME, voicerLocal);
+        } else {
             mTts.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_XTTS);
             //设置发音人资源路径
-            mTts.setParameter(ResourceUtil.TTS_RES_PATH,getResourcePath());
+            mTts.setParameter(ResourceUtil.TTS_RES_PATH, getResourcePath());
             //设置发音人
-            mTts.setParameter(SpeechConstant.VOICE_NAME,voicerXtts);
+            mTts.setParameter(SpeechConstant.VOICE_NAME, voicerXtts);
         }
         //mTts.setParameter(SpeechConstant.TTS_DATA_NOTIFY,"1");//支持实时音频流抛出，仅在synthesizeToUri条件下支持
         //设置合成语速
@@ -204,25 +237,25 @@ public boolean speak(String text){
         // 设置音频保存路径，保存音频格式支持pcm、wav，设置路径为sd卡请注意WRITE_EXTERNAL_STORAGE权限
         mTts.setParameter(SpeechConstant.AUDIO_FORMAT, "wav");
 
-        mTts.setParameter(SpeechConstant.TTS_AUDIO_PATH, Environment.getExternalStorageDirectory()+"/msc/tts.wav");
+        mTts.setParameter(SpeechConstant.TTS_AUDIO_PATH, Environment.getExternalStorageDirectory() + "/msc/tts.wav");
 
 
     }
 
     //获取发音人资源路径
-    private String getResourcePath(){
+    private String getResourcePath() {
         StringBuffer tempBuffer = new StringBuffer();
-        String type= "tts";
-        if(mEngineType.equals(SpeechConstant.TYPE_XTTS)){
-            type="xtts";
+        String type = "tts";
+        if (mEngineType.equals(SpeechConstant.TYPE_XTTS)) {
+            type = "xtts";
         }
         //合成通用资源
-        tempBuffer.append(ResourceUtil.generateResourcePath(context, ResourceUtil.RESOURCE_TYPE.assets, type+"/common.jet"));
+        tempBuffer.append(ResourceUtil.generateResourcePath(context, ResourceUtil.RESOURCE_TYPE.assets, type + "/common.jet"));
         tempBuffer.append(";");
         //发音人资源
-        if(mEngineType.equals(SpeechConstant.TYPE_XTTS)){
-            tempBuffer.append(ResourceUtil.generateResourcePath(context, ResourceUtil.RESOURCE_TYPE.assets, type+"/"+voicerLocal+".jet"));
-        }else {
+        if (mEngineType.equals(SpeechConstant.TYPE_XTTS)) {
+            tempBuffer.append(ResourceUtil.generateResourcePath(context, ResourceUtil.RESOURCE_TYPE.assets, type + "/" + voicerLocal + ".jet"));
+        } else {
             tempBuffer.append(ResourceUtil.generateResourcePath(context, ResourceUtil.RESOURCE_TYPE.assets, type + "/" + voicerLocal + ".jet"));
         }
 

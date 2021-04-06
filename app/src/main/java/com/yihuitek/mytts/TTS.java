@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -19,6 +20,8 @@ import com.iflytek.cloud.SpeechUtility;
 import com.iflytek.cloud.SynthesizerListener;
 import com.iflytek.cloud.util.ResourceUtil;
 import com.yihuitek.mytts.readtxt.ReadTxt;
+
+import org.greenrobot.eventbus.EventBus;
 
 public class TTS {
     // 语音合成对象
@@ -70,10 +73,13 @@ public class TTS {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Log.e("calm", "播放：" + Config.offess + "   " + Config.len);
                 String str = ReadTxt.read(Config.offess, Config.offess + Config.len);
-
-                Log.e("calm", "播放：" + str);
+                Message message=new Message();
+                Bundle bundle=new Bundle();
+                bundle.putString("txt",str);
+                message.setData(bundle);
+                EventBus.getDefault().post(message);
+                Config.offess = Config.offess + Config.len;
                 int code = mTts.startSpeaking(str, mTtsListener);
                 if (code != ErrorCode.SUCCESS) {
 
@@ -95,6 +101,10 @@ public class TTS {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 暂停
+     */
         public void pause(){
             try {
                 if (mTts != null) {
@@ -104,6 +114,29 @@ public class TTS {
                 Log.e("calm", "" + e.getMessage());
                 e.printStackTrace();
             }
+    }
+    /**
+     * 倍速
+     */
+    public String  speed(){
+        mTts.pauseSpeaking();
+        String data="1.0";
+         if(Config.speed.equals("50")){
+             Config.speed="60";
+             data="1.25";
+         }else if(Config.speed.equals("60")){
+            Config.speed="75";
+             data="1.5";
+        }else if(Config.speed.equals("75")){
+             Config.speed="100";
+             data="2.0";
+         }else if(Config.speed.equals("100")){
+             Config.speed="50";
+             data="1.0";
+         }
+        mTts.setParameter(SpeechConstant.SPEED, Config.speed);
+        mTts.resumeSpeaking();
+       return data;
     }
 
 
@@ -161,16 +194,16 @@ public class TTS {
         public void onSpeakProgress(int percent, int beginPos, int endPos) {
             // 播放进度
             mPercentForPlaying = percent;
-            Log.d("calm", String.format(context.getString(R.string.tts_toast_format),
-                    mPercentForBuffering, mPercentForPlaying));
+//            Log.d("calm", String.format(context.getString(R.string.tts_toast_format),
+//                    mPercentForBuffering, mPercentForPlaying));
         }
 
         @Override
         public void onCompleted(SpeechError error) {
             if (error == null) {
-                Log.d("calm", "播放完成");
+                Log.e("calm", "播放完成:"+ System.currentTimeMillis());
             } else if (error != null) {
-                Log.d("calm", error.getPlainDescription(true));
+                Log.e("calm", error.getPlainDescription(true));
             }
 
             speak("");

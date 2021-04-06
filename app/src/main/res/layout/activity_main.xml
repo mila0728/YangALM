@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     tools:context=".MainActivity">
     <EditText
         android:id="@+id/ed"
@@ -12,18 +14,55 @@
         android:layout_height="wrap_content"
 
         />
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="开始"
-        android:onClick="speak"
-      />
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="停止"
-        android:onClick="stop"
-        />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorbackgraoud">
+
+        <TextView
+            android:id="@+id/chapters"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/bt"
+            android:layout_marginBottom="-47dp"
+            android:scrollbars="vertical"
+            android:textSize="30sp" />
+
+        <LinearLayout
+            android:id="@+id/bt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal">
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="开始"
+                android:onClick="speak"
+                android:layout_weight="1"
+                />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="倍速"
+                android:onClick="speed"
+                android:layout_weight="1"
+                />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="停止"
+                android:onClick="stop"
+                android:layout_weight="1"
+                />
+
+
+        </LinearLayout>
+
+
+    </RelativeLayout>
+
 
 
 </LinearLayout>

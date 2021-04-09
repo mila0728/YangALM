@@ -40,8 +40,8 @@ public class TTS {
     private int mPercentForBuffering = 0;
     //播放进度
     private int mPercentForPlaying = 0;
-    public Toast mToast;
-    String text = "移汇科技，智慧生活";
+     String text = "";//剩余字符
+     String speaktext="";//播放字符
     private Context context;
 
     private static TTS tts;
@@ -69,27 +69,51 @@ public class TTS {
 
     }
 
-    public boolean speak(final String text) {
+    public boolean speak() {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String str = ReadTxt.read(Config.offess, Config.offess + Config.len);
+                speaktext = ReadTxt.read(Config.offset, Config.offset + Config.len);
+                text=text+speaktext;
+               int index=text.lastIndexOf("。");
+                speaktext=text.substring(0,index+1).trim();
+               text=text.substring(index+1).trim();
                 Message message=new Message();
                 Bundle bundle=new Bundle();
-                bundle.putString("txt",str);
+                bundle.putString("txt",speaktext);
                 message.setData(bundle);
                 EventBus.getDefault().post(message);
-                Config.offess = Config.offess + Config.len;
-                int code = mTts.startSpeaking(str, mTtsListener);
+                Config.offset = Config.offset + Config.len;
+                int code = mTts.startSpeaking(speaktext, mTtsListener);
                 if (code != ErrorCode.SUCCESS) {
-
                 } else {
-
                 }
             }
         }).start();
         return true;
     }
+    public boolean readFile() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                speaktext = ReadTxt.read(Config.offset, Config.offset + Config.len);
+                text=text+speaktext;
+                int index=text.lastIndexOf("。");
+                speaktext=text.substring(0,index+1).trim();
+                text=text.substring(index+1);
+                Message message=new Message();
+                Bundle bundle=new Bundle();
+                bundle.putString("txt",speaktext);
+                message.setData(bundle);
+                EventBus.getDefault().post(message);
+                Config.offset = Config.offset + Config.len;
+
+            }
+        }).start();
+        return true;
+    }
+
+
 
     public void stop() {
         try {
@@ -119,7 +143,7 @@ public class TTS {
      * 倍速
      */
     public String  speed(){
-        mTts.pauseSpeaking();
+        mTts.stopSpeaking();
         String data="1.0";
          if(Config.speed.equals("50")){
              Config.speed="60";
@@ -134,8 +158,10 @@ public class TTS {
              Config.speed="50";
              data="1.0";
          }
+        speaktext=speaktext.substring(speaktext.length()*mPercentForPlaying/100);
+         Log.e("calm","重新播放:"+speaktext);
         mTts.setParameter(SpeechConstant.SPEED, Config.speed);
-        mTts.resumeSpeaking();
+        mTts.startSpeaking(speaktext, mTtsListener);
        return data;
     }
 
@@ -205,8 +231,7 @@ public class TTS {
             } else if (error != null) {
                 Log.e("calm", error.getPlainDescription(true));
             }
-
-            speak("");
+            speak();
         }
 
         @Override

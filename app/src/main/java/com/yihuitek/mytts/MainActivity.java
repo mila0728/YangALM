@@ -33,31 +33,33 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         myRequetPermission();
         EventBus.getDefault().register(MainActivity.this);
-        Log.e("calm", "--------------------");
         tts = TTS.getInstanceTTS(MainActivity.this);
         String path = "txt/dldl.txt";
         Config.filepath = path;
 
-        //tts.speak("");
         editText = (EditText) findViewById(R.id.ed);
+        Config.offset=SpUtil.getInt(MyApplication.context, "offess", 0);
+        if( Config.offset>Config.len){
+            Config.offset=Config.offset-Config.len;
+        }
+        editText.setText( Config.offset+"");
         editText.clearFocus();
         textView=(TextView)findViewById(R.id.chapters);
-//        textView.
-//        OkUtils.getWeather();
+        tts.readFile();
     }
 
     public void speak(View view) {
         try {
             String ed = editText.getText().toString();
             if (ed == null || ed.length() < 1) {
-                Config.offess = SpUtil.getInt(MyApplication.context, "offess", 0);
+                Config.offset = 0;
             } else {
-                Config.offess = Integer.parseInt(ed) - 50;
+                Config.offset = Integer.parseInt(ed) - 50;
             }
-            if (Config.offess < 50) {
-                Config.offess = 0;
+            if (Config.offset < 50) {
+                Config.offset = 0;
             }
-            boolean bool = tts.speak("");
+            boolean bool = tts.speak();
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -69,8 +71,13 @@ public class MainActivity extends Activity {
     }
     public void stop(View view) {
         tts.stop();
-        SpUtil.putInt(MyApplication.context, "offess", Config.offess);
-        Toast.makeText(MyApplication.context, "位置: " + Config.offess, Toast.LENGTH_LONG).show();
+        SpUtil.putInt(MyApplication.context, "offess", Config.offset);
+        Toast.makeText(MyApplication.context, "位置: " + Config.offset, Toast.LENGTH_LONG).show();
+    }
+    public void next(View view) {
+        tts.stop();
+        tts.speak();
+
     }
     private void myRequetPermission() {
         if (Build.VERSION.SDK_INT >= 23) {
@@ -90,13 +97,14 @@ public class MainActivity extends Activity {
     public void onEventMainThread(Message message){
           String txt= message.getData().getString("txt");
           textView.setText(txt);
+          editText.setText(Config.offset+"");
     }
 
 
 
 
     protected void onDestroy(){
-        SpUtil.putInt(MyApplication.context, "offess", Config.offess);
+        SpUtil.putInt(MyApplication.context, "offess", Config.offset);
         EventBus.getDefault().unregister(this);
         super.onDestroy();
 

@@ -27,4 +27,8 @@ public class MyApplication extends Application {
                 .CookieJar(new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(MyApplication.this)))
                 .build();
     }
+    public  Context getContext(){
+        context=getApplicationContext();
+        return context;
+    }
 }

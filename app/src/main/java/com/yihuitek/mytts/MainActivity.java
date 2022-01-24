@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
         myRequetPermission();
         EventBus.getDefault().register(MainActivity.this);
 //        tts = TTS.getInstanceTTS(MainActivity.this);
-        String path = "txt/dldl2.txt";
+        String path = "txt/dldl3.txt";
         Config.filepath = path;
 //
         editText = (EditText) findViewById(R.id.ed);
@@ -93,8 +93,6 @@ public class MainActivity extends Activity {
 
     public void stop(View view) {
         IflytekTTS.getInstanceTTS().stop();
-
-
 //        tts.stop();
         SpUtil.putInt(MyApplication.context, "offess", Config.offset);
         Toast.makeText(MyApplication.context, "位置: " + Config.offset, Toast.LENGTH_LONG).show();
